@@ -40,7 +40,7 @@ class User extends Authenticatable
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(RolesUsers::class);
+        return $this->belongsToMany(Role::class);
     }
 
     public function teacher(): HasOne
