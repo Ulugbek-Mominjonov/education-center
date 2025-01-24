@@ -18,6 +18,8 @@ class UserSeeder extends Seeder
         DB::table("users")->insert([
             "user_name" => "admin",
             "user_type_id" => 1,
+            "is_active" => 1,
+            "is_attach" => 1,
             "password" => Hash::make("admin")
         ]);
     }
