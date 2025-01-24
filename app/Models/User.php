@@ -18,6 +18,7 @@ class User extends Authenticatable
         'user_name',
         'password',
         'is_active',
+        'is_attach'
     ];
 
     protected $hidden = [
@@ -44,6 +45,4 @@ class User extends Authenticatable
     {
         return $this->hasOne(Student::class);
     }
-
-
 }

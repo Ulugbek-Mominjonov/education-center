@@ -20,9 +20,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('users/paginate', [UserController::class, 'paginate']);
     Route::get('/teachers/paginate', [TeacherController::class, 'paginate']);
 
-    // actions
+    // actions start
+    // users
     Route::put('users/toggle-active/{id}', [UserController::class, 'toggleActive']);
     Route::put('users/change-roles/{id}', [UserController::class, 'changeRoles']);
+
+    // teachers
+    Route::put('teachers/attach-user/{id}', [TeacherController::class, 'attachUser']);
+    Route::put('teachers/change-subjects/{id}', [TeacherController::class, 'changeSubjects']);
+    Route::put('teachers/change-groups/{id}', [TeacherController::class, 'changeGroups']);
+
 
     // CRUD
     Route::apiResources([

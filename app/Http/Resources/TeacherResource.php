@@ -28,7 +28,7 @@ class TeacherResource extends JsonResource
                 return $this->subjects->setVisible(['id', 'name']);
             }),
             "groups" => $this->whenLoaded('groups', function () {
-                return $this->groups->setVisible(['id', 'name']);
+                return $this->groups->setVisible(['id', 'name', 'subject_id']);
             }),
 
         ];

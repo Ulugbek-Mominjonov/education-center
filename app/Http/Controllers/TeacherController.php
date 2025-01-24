@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Resources\TeacherResource;
+use App\Models\Group;
 use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TeacherController extends Controller
 {
@@ -124,6 +127,101 @@ class TeacherController extends Controller
             return response()->json(new TeacherResource($teacher->load(['groups', 'subjects', 'user'])), 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'teacher not updated'], 500);
+        }
+    }
+
+    public function attachUser(Request $request, $id)
+    {
+        $request->validate([
+            'user_id' => [
+                'required',
+                'integer',
+                Rule::exists('users', 'id')->where(function ($query) {
+                    $query->where('is_attach', false)->where('is_active', true);
+                }),
+            ],
+        ], [
+            'user_id.exists' => 'The selected user is either not active or already attached.'
+        ]);
+        $teacher = Teacher::find($id);
+
+        if (!$teacher) {
+            return response()->json(['message' => 'teacher not found'], 404);
+        }
+
+        if ($teacher->user_id) {
+            return response()->json(['message' => 'teacher already attached'], 400);
+        }
+
+        try {
+            $teacher->user_id = $request->user_id;
+            $teacher->save();
+
+            User::find($request->user_id)->update(['is_attach' => true]);
+
+            return response()->json(new TeacherResource($teacher->load(['user'])), 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function changeSubjects(Request $request, $id)
+    {
+        $request->validate([
+            'subjects' => 'required|array',
+            'subjects.*' => 'integer|exists:subjects,id',
+
+        ]);
+        $teacher = Teacher::find($id);
+
+        if (!$teacher) {
+            return response()->json(['message' => 'teacher not found'], 404);
+        }
+
+        try {
+            $teacher->subjects()->sync($request->subjects);
+            return response()->json(new TeacherResource($teacher->load(['subjects'])), 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function changeGroups(Request $request, $id)
+    {
+        $request->validate([
+            'groups' => 'required|array',
+            'groups.*' => 'integer|exists:groups,id',
+        ]);
+        $teacher = Teacher::find($id);
+
+        if (!$teacher) {
+            return response()->json(['message' => 'teacher not found'], 404);
+        }
+
+        $subjectIds = $teacher->subjects()->pluck('subject_id')->toArray();
+
+        $errors = [];
+
+        foreach ($request->groups as $groupId) {
+            $group = Group::find($groupId);
+
+            if (!$group || !in_array($group->subject_id, $subjectIds)) {
+                $errors[] = "This teacher cannot teach this group: {$group->name}";
+            }
+        }
+
+        if (!empty($errors)) {
+            return response()->json([
+                'message' => 'Validation error occurred.',
+                'errors' => $errors,
+            ], 400);
+        }
+
+        try {
+            $teacher->groups()->sync($request->groups);
+            return response()->json(new TeacherResource($teacher->load(['groups'])), 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
