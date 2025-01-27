@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Group;
+use App\Rules\ValidUser;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 
@@ -28,7 +29,7 @@ class StoreTeacherRequest extends FormRequest
             'last_name' => 'required',
             'degree' => 'required',
             'salary' => 'numeric|digits_between:7,8',
-            'user_id' => 'integer|exists:users,id',
+            'user_id' => ['integer', new ValidUser],
             "subjects" => "required|array",
             "groups" => [
                 'array',

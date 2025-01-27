@@ -20,7 +20,7 @@ class StoreUserRequest extends FormRequest
         return [
             'user_name' => 'required|string|unique:users,user_name',
             'user_type_id' => 'required|integer|exists:user_types,id',
-            'is_attach' => 'boolean',
+            'is_attach' => 'nullable|boolean',
             'password' => 'string|min:8',
         ];
     }

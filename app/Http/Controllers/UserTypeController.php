@@ -10,9 +10,7 @@ class UserTypeController extends Controller
 {
   public function index()
   {
-    return response()->json([
-      'data' => UserType::all()
-    ], 200);
+    return response()->json(UserType::all(), 200);
   }
 
   public function paginate(Request $request)
@@ -24,14 +22,15 @@ class UserTypeController extends Controller
 
     $perPage = $request->query('per_page', 10);
     $page = $request->query('page', 1);
-    
+
     $userTypes = UserType::paginate($perPage, ['*'], 'page', $page);
 
     return response()->json(
-      $userTypes
-    , 200);
-  }   
-  
+      $userTypes,
+      200
+    );
+  }
+
   public function store(Request $request)
   {
     $request->validate([
@@ -45,58 +44,58 @@ class UserTypeController extends Controller
       ]);
       return response()->json($userType, 201);
     } catch (\Exception $e) {
-      return response()->json(['message' => 'userType not created'], 500);
+      return response()->json(['message' => $e->getMessage()], 500);
     }
   }
 
   public function show($id)
   {
 
-      $userType = UserType::find($id);
+    $userType = UserType::find($id);
 
-      if (!$userType) {
-          return response()->json(['message' => 'userType not found'], 404);
-      }
+    if (!$userType) {
+      return response()->json(['message' => 'userType not found'], 404);
+    }
 
-      return response()->json($userType, 200);
+    return response()->json($userType, 200);
   }
 
   public function update(Request $request, $id)
   {
-      $userType = UserType::find($id);
+    $userType = UserType::find($id);
 
-      if (!$userType) {
-          return response()->json(['message' => 'userType not found'], 404);
-      }
+    if (!$userType) {
+      return response()->json(['message' => 'userType not found'], 404);
+    }
 
-      $request->validate([
-          'name' => 'required',
+    $request->validate([
+      'name' => 'required',
+    ]);
+
+    try {
+      $userType->update([
+        'name' => $request->name,
+        'description' => $request->description,
       ]);
-
-      try {
-          $userType->update([
-              'name' => $request->name,
-              'description' => $request->description,
-          ]);
-          return response()->json($userType, 200);
-      } catch (\Exception $e) {
-          return response()->json(['message' => 'userType not updated'], 500);
-      }
+      return response()->json($userType, 200);
+    } catch (\Exception $e) {
+      return response()->json(['message' => $e->getMessage()], 500);
+    }
   }
 
   public function destroy($id)
   {
-      $userType = UserType::find($id);
+    $userType = UserType::find($id);
 
-      if (!$userType) {
-          return response()->json(['message' => 'userType not found'], 404);
-      }
+    if (!$userType) {
+      return response()->json(['message' => 'userType not found'], 404);
+    }
 
-      try {
-          $userType->delete();
-          return response()->json(['message' => 'userType deleted'], 200);
-      } catch (\Exception $e) {
-          return response()->json(['message' => 'userType not deleted'], 500);
-      }
+    try {
+      $userType->delete();
+      return response()->json(['message' => 'userType deleted'], 200);
+    } catch (\Exception $e) {
+      return response()->json(['message' => $e->getMessage()], 500);
+    }
   }
 }

@@ -7,6 +7,7 @@ use App\Http\Resources\TeacherResource;
 use App\Models\Group;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Rules\ValidUser;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -14,7 +15,8 @@ class TeacherController extends Controller
 {
     public function index()
     {
-        return response()->json(TeacherResource::collection(Teacher::all()->load(['groups', 'subjects', 'user'])), 200);
+        $teachers = TeacherResource::collection(Teacher::all());
+        return response()->json($teachers, 200);
     }
 
     public function paginate(Request $request)
@@ -22,8 +24,8 @@ class TeacherController extends Controller
         $request->validate([
             'per_page' => 'integer',
             'page' => 'integer',
-            'orderBy' => 'string',
-            'orderDirection' => 'string|in:asc,desc',
+            'sort_by' => 'string',
+            'sort_direction' => 'string|in:asc,desc',
         ]);
 
         $perPage = $request->query('per_page', 10);
@@ -126,7 +128,7 @@ class TeacherController extends Controller
             $teacher->groups()->sync($request->groups);
             return response()->json(new TeacherResource($teacher->load(['groups', 'subjects', 'user'])), 200);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'teacher not updated'], 500);
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
@@ -136,12 +138,8 @@ class TeacherController extends Controller
             'user_id' => [
                 'required',
                 'integer',
-                Rule::exists('users', 'id')->where(function ($query) {
-                    $query->where('is_attach', false)->where('is_active', true);
-                }),
+                new ValidUser,
             ],
-        ], [
-            'user_id.exists' => 'The selected user is either not active or already attached.'
         ]);
         $teacher = Teacher::find($id);
 
@@ -157,7 +155,7 @@ class TeacherController extends Controller
             $teacher->user_id = $request->user_id;
             $teacher->save();
 
-            User::find($request->user_id)->update(['is_attach' => true]);
+            $teacher->user()->update(['is_attach' => true]);
 
             return response()->json(new TeacherResource($teacher->load(['user'])), 200);
         } catch (\Exception $e) {
@@ -237,7 +235,7 @@ class TeacherController extends Controller
             $teacher->delete();
             return response()->json(['message' => 'teacher deleted'], 200);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'teacher not deleted'], 500);
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 }

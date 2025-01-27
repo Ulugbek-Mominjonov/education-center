@@ -30,9 +30,7 @@ class UserController extends Controller
     }
 
 
-    return response()->json([
-      'data' => UserResource::collection($query->with(['userType', 'roles'])->get())
-    ], 200);
+    return response()->json(UserResource::collection($query->with(['userType', 'roles'])->get()), 200);
   }
 
   public function paginate(Request $request)
@@ -88,17 +86,15 @@ class UserController extends Controller
       $user = User::create([
         'user_name' => $request->user_name,
         'user_type_id' => $request->user_type_id,
-        'is_attach' => $request->has('is_attach') ? 0 : $request->is_attach,
-        'password' => Hash::make($request->password),
+        'password' => Hash::make(is_null($request->password) ? '12345678' : $request->password),
       ]);
 
-      foreach ($request->user_roles as $role) {
-        $user->roles()->attach($role);
-      }
+
+      $user->roles()->attach($request->user_roles);
 
       return response()->json(new UserResource($user->load('userType', 'roles')), 201);
     } catch (\Exception $e) {
-      return response()->json(['message' => 'user not created'], 500);
+      return response()->json(['message' => $e->getMessage()], 500);
     }
   }
 
@@ -157,7 +153,7 @@ class UserController extends Controller
       $user->delete();
       return response()->json(['message' => 'user deleted'], 200);
     } catch (\Exception $e) {
-      return response()->json(['message' => 'user not deleted'], 500);
+      return response()->json(['message' => $e->getMessage()], 500);
     }
   }
 }

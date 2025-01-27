@@ -11,9 +11,15 @@ class Task extends Model
 
     use HasFactory;
     protected $fillable = [
+        'subject_id',
         'name',
         'description',
     ];
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class);
+    }
 
     public function groups(): BelongsToMany
     {
@@ -22,6 +28,6 @@ class Task extends Model
 
     public  function studentsRating(): BelongsToMany
     {
-        return $this->belongsToMany(Student::class);
+        return $this->belongsToMany(Student::class, 'student_task_ratings', 'task_id', 'student_id');
     }
 }

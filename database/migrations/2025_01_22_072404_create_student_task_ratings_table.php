@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('student_id')->constrained();
             $table->foreignId('task_id')->constrained();
             $table->integer('score_got');
-            $table->foreignId('rated_by')->constrained('users');
+            $table->integer('total_score');
+            $table->foreignId('rated_by')->constrained('teachers');
             $table->timestamps();
         });
     }

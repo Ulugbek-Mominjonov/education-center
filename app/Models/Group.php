@@ -18,4 +18,19 @@ class Group extends Model
     {
         return $this->belongsTo(Subject::class);
     }
+
+    public function tasks()
+    {
+        return $this->belongsToMany(Task::class);
+    }
+
+    public function students()
+    {
+        return $this->belongsToMany(Student::class);
+    }
+
+    public function teachers()
+    {
+        return $this->belongsToMany(Teacher::class);
+    }
 }

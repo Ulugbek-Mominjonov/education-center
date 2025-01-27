@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('group_id')->constrained();
             $table->foreignId('task_id')->constrained();
+            $table->integer('total_score');
+            $table->integer('deadline');
             $table->timestamps();
         });
     }

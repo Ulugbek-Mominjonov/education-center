@@ -7,11 +7,9 @@ use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
-    public function index()
+  public function index()
   {
-    return response()->json([
-      'data' => Role::all()
-    ], 200);
+    return response()->json(Role::all(), 200);
   }
 
   public function paginate(Request $request)
@@ -23,14 +21,15 @@ class RoleController extends Controller
 
     $perPage = $request->query('per_page', 10);
     $page = $request->query('page', 1);
-    
+
     $roles = Role::paginate($perPage, ['*'], 'page', $page);
 
     return response()->json(
-      $roles
-    , 200);
-  }   
-  
+      $roles,
+      200
+    );
+  }
+
   public function store(Request $request)
   {
     $request->validate([
@@ -44,58 +43,59 @@ class RoleController extends Controller
       ]);
       return response()->json($role, 201);
     } catch (\Exception $e) {
-      return response()->json(['message' => 'role not created'], 500);
+      return response()->json(['message' => $e->getMessage()], 500);
     }
   }
 
   public function show($id)
   {
 
-      $role = Role::find($id);
+    $role = Role::find($id);
 
-      if (!$role) {
-          return response()->json(['message' => 'role not found'], 404);
-      }
+    if (!$role) {
+      return response()->json(['message' => 'role not found'], 404);
+    }
 
-      return response()->json($role, 200);
+    return response()->json($role, 200);
   }
 
   public function update(Request $request, $id)
   {
-      $role = Role::find($id);
+    $request->validate([
+      'name' => 'required',
+    ]);
 
-      if (!$role) {
-          return response()->json(['message' => 'role not found'], 404);
-      }
+    $role = Role::find($id);
 
-      $request->validate([
-          'name' => 'required',
+    if (!$role) {
+      return response()->json(['message' => 'role not found'], 404);
+    }
+
+
+    try {
+      $role->update([
+        'name' => $request->name,
+        'description' => $request->description,
       ]);
-
-      try {
-          $role->update([
-              'name' => $request->name,
-              'description' => $request->description,
-          ]);
-          return response()->json($role, 200);
-      } catch (\Exception $e) {
-          return response()->json(['message' => 'role not updated'], 500);
-      }
+      return response()->json($role, 200);
+    } catch (\Exception $e) {
+      return response()->json(['message' => $e->getMessage()], 500);
+    }
   }
 
   public function destroy($id)
   {
-      $role = Role::find($id);
+    $role = Role::find($id);
 
-      if (!$role) {
-          return response()->json(['message' => 'role not found'], 404);
-      }
+    if (!$role) {
+      return response()->json(['message' => 'role not found'], 404);
+    }
 
-      try {
-          $role->delete();
-          return response()->json(['message' => 'role deleted'], 200);
-      } catch (\Exception $e) {
-          return response()->json(['message' => 'role not deleted'], 500);
-      }
+    try {
+      $role->delete();
+      return response()->json(['message' => 'role deleted'], 200);
+    } catch (\Exception $e) {
+      return response()->json(['message' => $e->getMessage()], 500);
+    }
   }
 }
