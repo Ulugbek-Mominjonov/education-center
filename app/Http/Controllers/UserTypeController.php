@@ -2,100 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserType;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Http\Requests\PaginateRequest;
+use App\Http\Requests\UserTypeRequest;
+use App\Repositories\Interfaces\UserTypeRepositoryInterface;
 use Illuminate\Http\Request;
 
 class UserTypeController extends Controller
 {
+
+  protected $userTypeRepository;
+
+  public function __construct(UserTypeRepositoryInterface $userTypeRepository)
+  {
+    $this->userTypeRepository = $userTypeRepository;
+  }
   public function index()
   {
-    return response()->json(UserType::all(), 200);
+    return $this->userTypeRepository->all();
   }
 
-  public function paginate(Request $request)
+  public function paginate(PaginateRequest $request)
   {
-    $request->validate([
-      'per_page' => 'integer',
-      'page' => 'integer',
-    ]);
-
-    $perPage = $request->query('per_page', 10);
-    $page = $request->query('page', 1);
-
-    $userTypes = UserType::paginate($perPage, ['*'], 'page', $page);
-
-    return response()->json(
-      $userTypes,
-      200
-    );
+    return $this->userTypeRepository->paginate($request);
   }
 
-  public function store(Request $request)
+  public function store(UserTypeRequest $request)
   {
-    $request->validate([
-      'name' => 'required',
+    $this->userTypeRepository->create([
+      'name' => $request->name,
+      'description' => $request->description,
     ]);
-
-    try {
-      $userType = UserType::create([
-        'name' => $request->name,
-        'description' => $request->description,
-      ]);
-      return response()->json($userType, 201);
-    } catch (\Exception $e) {
-      return response()->json(['message' => $e->getMessage()], 500);
-    }
   }
 
   public function show($id)
   {
-
-    $userType = UserType::find($id);
-
-    if (!$userType) {
-      return response()->json(['message' => 'userType not found'], 404);
-    }
-
-    return response()->json($userType, 200);
+    return $this->userTypeRepository->find($id);
   }
 
   public function update(Request $request, $id)
   {
-    $userType = UserType::find($id);
-
-    if (!$userType) {
-      return response()->json(['message' => 'userType not found'], 404);
-    }
-
-    $request->validate([
-      'name' => 'required',
+    return $this->userTypeRepository->update($id, [
+      'name' => $request->name,
+      'description' => $request->description,
     ]);
-
-    try {
-      $userType->update([
-        'name' => $request->name,
-        'description' => $request->description,
-      ]);
-      return response()->json($userType, 200);
-    } catch (\Exception $e) {
-      return response()->json(['message' => $e->getMessage()], 500);
-    }
   }
 
   public function destroy($id)
   {
-    $userType = UserType::find($id);
-
-    if (!$userType) {
-      return response()->json(['message' => 'userType not found'], 404);
-    }
-
-    try {
-      $userType->delete();
-      return response()->json(['message' => 'userType deleted'], 200);
-    } catch (\Exception $e) {
-      return response()->json(['message' => $e->getMessage()], 500);
-    }
+    return $this->userTypeRepository->delete($id);
   }
 }

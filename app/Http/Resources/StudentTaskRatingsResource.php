@@ -32,8 +32,6 @@ class StudentTaskRatingsResource extends JsonResource
             'rated_by' => $this->whenLoaded('teacher', function () {
                 return $this->teacher->first_name . ' ' . $this->teacher->last_name;
             }),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

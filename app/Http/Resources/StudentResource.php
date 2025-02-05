@@ -21,10 +21,8 @@ class StudentResource extends JsonResource
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'phone' => $this->phone,
-            "user" => $this->whenLoaded('user', function () {
-                return new UserResource($this->user->load('userType', 'roles'));
-            }),
-            "groups" => GroupResource::collection($this->whenLoaded('groups')),
+            'groups' => $this->groups,
+            'user' => $this->user,
         ];
     }
 }
