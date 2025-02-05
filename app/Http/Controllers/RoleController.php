@@ -2,42 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
-use Illuminate\Http\Request;
+use App\Http\Requests\PaginateRequest;
+use App\Http\Requests\RoleRequest;
+use App\Repositories\Interfaces\RoleRepositoryInterface;
 
 class RoleController extends Controller
 {
-  public function index()
+
+  protected $roleRepository;
+
+  public function __construct(RoleRepositoryInterface $roleRepository)
   {
-    return response()->json(Role::all(), 200);
+    $this->roleRepository = $roleRepository;
   }
 
-  public function paginate(Request $request)
+  public function index()
   {
-    $request->validate([
-      'per_page' => 'integer',
-      'page' => 'integer',
-    ]);
+    return response()->json($this->roleRepository->all(), 200);
+  }
 
-    $perPage = $request->query('per_page', 10);
-    $page = $request->query('page', 1);
-
-    $roles = Role::paginate($perPage, ['*'], 'page', $page);
-
+  public function paginate(PaginateRequest $request)
+  {
     return response()->json(
-      $roles,
+      $this->roleRepository->paginate($request),
       200
     );
   }
 
-  public function store(Request $request)
+  public function store(RoleRequest $request)
   {
-    $request->validate([
-      'name' => 'required',
-    ]);
-
     try {
-      $role = Role::create([
+      $role = $this->roleRepository->create([
         'name' => $request->name,
         'description' => $request->description,
       ]);
@@ -50,7 +45,7 @@ class RoleController extends Controller
   public function show($id)
   {
 
-    $role = Role::find($id);
+    $role = $this->roleRepository->find($id);
 
     if (!$role) {
       return response()->json(['message' => 'role not found'], 404);
@@ -59,43 +54,27 @@ class RoleController extends Controller
     return response()->json($role, 200);
   }
 
-  public function update(Request $request, $id)
+  public function update(RoleRequest $request, $id)
   {
-    $request->validate([
-      'name' => 'required',
-    ]);
 
-    $role = Role::find($id);
+    $role = $this->roleRepository->update($id, [
+      'name' => $request->name,
+      'description' => $request->description,
+    ]);
 
     if (!$role) {
       return response()->json(['message' => 'role not found'], 404);
     }
 
-
-    try {
-      $role->update([
-        'name' => $request->name,
-        'description' => $request->description,
-      ]);
-      return response()->json($role, 200);
-    } catch (\Exception $e) {
-      return response()->json(['message' => $e->getMessage()], 500);
-    }
+    return response()->json($role, 200);
   }
 
   public function destroy($id)
   {
-    $role = Role::find($id);
-
+    $role = $this->roleRepository->delete($id);
     if (!$role) {
       return response()->json(['message' => 'role not found'], 404);
     }
-
-    try {
-      $role->delete();
-      return response()->json(['message' => 'role deleted'], 200);
-    } catch (\Exception $e) {
-      return response()->json(['message' => $e->getMessage()], 500);
-    }
+    return response()->json(['message' => 'role deleted'], 200);
   }
 }
