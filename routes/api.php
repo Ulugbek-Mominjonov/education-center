@@ -51,7 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/students/ratings', [StudentController::class, 'studentsRatings']);
     Route::put('/students/attach-user/{id}', [StudentController::class, 'attachUser']);
     Route::put('/students/change-groups/{id}', [StudentController::class, 'changeGroups']);
-    Route::get('/students/generate-students-csv-file', [StudentController::class, 'generateStudentsCsvFile']);
+    Route::post('/students/generate-students-csv-file', [StudentController::class, 'generateStudentsCsvFile']);
 
     Route::put('/students/assessing-student-tasks/{id}', [StudentController::class, 'assessingStudentTasks']);
 
