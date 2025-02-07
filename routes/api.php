@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/students/download-latest-excel-file', [StudentController::class, 'downloadLatestExcelFile']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -37,9 +38,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/groups/attach-task/{id}', [GroupController::class, 'attachTask']);
     Route::put('/groups/change-subject/{id}', [GroupController::class, 'changeSubject']);
     Route::put('/groups/attach-teachers/{id}', [GroupController::class, 'attachTeachers']);
+    Route::put('/groups/attach-students/{id}', [GroupController::class, 'attachStudents']);
     Route::get('/groups/not-assinged-tasks/{id}', [GroupController::class, 'notAssingedTasks']);
     Route::get('/groups/not-attached-teachers/{id}', [GroupController::class, 'notAttachedTeachers']);
-    Route::put('/groups/attach-students/{id}', [GroupController::class, 'attachStudents']);
 
     // teachers
     Route::put('/teachers/attach-user/{id}', [TeacherController::class, 'attachUser']);
@@ -50,6 +51,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/students/ratings', [StudentController::class, 'studentsRatings']);
     Route::put('/students/attach-user/{id}', [StudentController::class, 'attachUser']);
     Route::put('/students/change-groups/{id}', [StudentController::class, 'changeGroups']);
+    Route::get('/students/generate-students-csv-file', [StudentController::class, 'generateStudentsCsvFile']);
+
     Route::put('/students/assessing-student-tasks/{id}', [StudentController::class, 'assessingStudentTasks']);
 
 

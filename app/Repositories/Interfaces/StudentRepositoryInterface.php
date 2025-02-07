@@ -10,4 +10,7 @@ interface StudentRepositoryInterface extends BaseRepositoryInterface
   public function assessingStudentTasks($request, $id);
 
   public function studentsRatings($request);
+
+  public function generateStudentsCsvFile($request);
+  public function downloadLatestExcelFile();
 }

@@ -70,4 +70,15 @@ class StudentController extends Controller
     {
         return $this->studentRepository->studentsRatings($request);
     }
+
+
+    public function generateStudentsCsvFile(Request $request)
+    {
+        return $this->studentRepository->generateStudentsCsvFile($request);
+    }
+
+    public function downloadLatestExcelFile()
+    {
+        return $this->studentRepository->downloadLatestExcelFile();
+    }
 }

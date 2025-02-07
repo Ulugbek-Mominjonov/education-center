@@ -2,14 +2,17 @@
 
 namespace App\Repositories;
 
+use App\Exports\StudentsExport;
 use App\Http\Resources\StudentResource;
 use App\Http\Resources\StudentTaskRatingsResource;
+use App\Jobs\CreateCsvFile;
 use App\Models\Student;
 use App\Models\StudentTaskRatings;
 use App\Repositories\Interfaces\StudentRepositoryInterface;
 use App\Rules\GroupCapacity;
 use App\Rules\ValidUser;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class StudentRepository extends BaseRepository implements StudentRepositoryInterface
 {
@@ -26,28 +29,28 @@ class StudentRepository extends BaseRepository implements StudentRepositoryInter
     $sortDirection = $request->query('sort_direction', 'desc');
 
     $query = Student::query()
-      ->when($request->query('first_name'), function ($query, $first_name) {
-        $query->where('first_name', 'like', "%$first_name%");
+      ->when($request->query('first_name'), function ($query, $firstName) {
+        $query->where('first_name', 'like', "%$firstName%");
       })
-      ->when($request->query('last_name'), function ($query, $last_name) {
-        $query->where('last_name', 'like', "%$last_name%");
+      ->when($request->query('last_name'), function ($query, $lastName) {
+        $query->where('last_name', 'like', "%$lastName%");
       })
       ->when($request->query("phone"), function ($query, $phone) {
         $query->where("phone", "like", "%$phone%");
       })
-      ->when($request->query('group_id'), function ($query, $group_id) {
-        $query->whereHas("groups", function ($query) use ($group_id) {
-          $query->where("group_id", '=',  $group_id);
+      ->when($request->query('group_id'), function ($query, $groupId) {
+        $query->whereHas("groups", function ($query) use ($groupId) {
+          $query->where("group_id", '=',  $groupId);
         });
       })
-      ->when($request->query('task_id'), function ($query, $task_id) {
-        $query->whereHas("groups.tasks", function ($query) use ($task_id) {
-          $query->where("task_id", '=', $task_id);
+      ->when($request->query('task_id'), function ($query, $taskId) {
+        $query->whereHas("groups.tasks", function ($query) use ($taskId) {
+          $query->where("task_id", '=', $taskId);
         });
       })
-      ->when($request->query('teacher_id'), function ($query, $teacher_id) {
-        $query->whereHas("groups.teachers", function ($query) use ($teacher_id) {
-          $query->where("teacher_id", '=', $teacher_id);
+      ->when($request->query('teacher_id'), function ($query, $teacherId) {
+        $query->whereHas("groups.teachers", function ($query) use ($teacherId) {
+          $query->where("teacher_id", '=', $teacherId);
         });
       })
       ->with([
@@ -172,13 +175,13 @@ class StudentRepository extends BaseRepository implements StudentRepositoryInter
     }
 
 
-    $rated_by = $sessionUser->teacher->id;
+    $ratedBy = $sessionUser->teacher->id;
     $exists = $student->ratings()->where('task_id', $request->task_id)->exists();
 
     if ($exists) {
-      $student->ratings()->updateExistingPivot($request->task_id, ['score_got' => $request->score_got, 'rated_by' => $rated_by, 'total_score' => $totalScore]);
+      $student->ratings()->updateExistingPivot($request->task_id, ['score_got' => $request->score_got, 'rated_by' => $ratedBy, 'total_score' => $totalScore]);
     } else {
-      $student->ratings()->attach($request->task_id, ['score_got' => $request->score_got, 'rated_by' => $rated_by, 'total_score' => $totalScore]);
+      $student->ratings()->attach($request->task_id, ['score_got' => $request->score_got, 'rated_by' => $ratedBy, 'total_score' => $totalScore]);
     }
 
     return response()->json(['message' => 'success'], 201);
@@ -217,5 +220,24 @@ class StudentRepository extends BaseRepository implements StudentRepositoryInter
       ->simplePaginate($perPage, ['*'], 'page', $page);
 
     return response()->json(StudentTaskRatingsResource::collection($query), 200);
+  }
+
+  public function generateStudentsCsvFile($request)
+  {
+    CreateCsvFile::dispatch();
+
+    return response()->json(['message' => 'Creating csv file'], 201);
+  }
+
+  public function downloadLatestExcelFile()
+  {
+    $files = Storage::files('files');
+    $latestFile = collect($files)->sortDesc()->first();
+
+    if (!$latestFile) {
+      return response()->json(['message' => 'No file found'], 404);
+    }
+
+    return Storage::download($latestFile);
   }
 }
